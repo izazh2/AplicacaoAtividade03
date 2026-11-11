@@ -99,7 +99,7 @@ namespace AplicacaoAtividade03.Controllers
 
             foreach (var e in dto.Enderecos)
             {
-                if (e.CEP != null || e.CEP.Length != 8 || !e.CEP.All(char.IsDigit))
+                if (e.CEP == null || e.CEP.Length != 8 || !e.CEP.All(char.IsDigit))
                     return "CEP OBRIGATORIO COM 8 DIGITOS NUMERICOS.";
 
                 if (string.IsNullOrWhiteSpace(e.Numero) || e.Numero.Length > 10)
@@ -140,7 +140,7 @@ namespace AplicacaoAtividade03.Controllers
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.Idpessoa == id);
 
-            if (funcionario == null) 
+            if (funcionario == null)
             {
                 return NotFound(new
                 {
@@ -153,19 +153,19 @@ namespace AplicacaoAtividade03.Controllers
 
         //inserir  pessoa  + funcionario + enderecos
         [HttpPost]
-        public async Task<ActionResult<FuncionarioListDTO>> PostFuncionario(FuncionarioDTO dto) 
+        public async Task<ActionResult<FuncionarioListDTO>> PostFuncionario(FuncionarioDTO dto)
         {
             var erroValidacao = ValidarDados(dto);
             if (erroValidacao != null)
             {
-                return BadRequest(new {mensagem = erroValidacao});
+                return BadRequest(new { mensagem = erroValidacao });
             }
 
             // o banco nao tem unique no cpf, entao a api impede cpf duplicado 
             ulong cpf = ulong.Parse(dto.CPF!);
             if (await _context.Pessoas.AnyAsync(p => p.Cpf == cpf))
             {
-                return Conflict(new { mesagem = "JA EXISTE UMA PESSOA COM ESSE CPF!!!" });
+                return Conflict(new { mensagem = "JA EXISTE UMA PESSOA COM ESSE CPF!!!" });
             }
 
             //MONTA PESSOA, FUNCIONARIO E ENDERECOS JUNTOS.
@@ -200,7 +200,7 @@ namespace AplicacaoAtividade03.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException ex) 
+            catch (DbUpdateException ex)
             {
                 return BadRequest(new
                 {
@@ -212,7 +212,7 @@ namespace AplicacaoAtividade03.Controllers
             // rele no banco para devolver o que foi gravado (com os ids gerados)
             var criado = await ConsultaCompleta()
                 .AsNoTracking()
-                .FirstAsync( f => f.Idpessoa == pessoa.Idpessoa);
+                .FirstAsync(f => f.Idpessoa == pessoa.Idpessoa);
 
             return CreatedAtAction(
                 nameof(GetFuncionario),
@@ -224,8 +224,8 @@ namespace AplicacaoAtividade03.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> PutFuncionario(int id, FuncionarioDTO dto)
         {
-             var erroValidacao = ValidarDados(dto);
-            if (erroValidacao != null) 
+            var erroValidacao = ValidarDados(dto);
+            if (erroValidacao != null)
             {
                 return BadRequest(new { mensagem = erroValidacao });
             }
@@ -234,7 +234,7 @@ namespace AplicacaoAtividade03.Controllers
             var funcionario = await ConsultaCompleta()
                 .FirstOrDefaultAsync(f => f.Idpessoa == id);
 
-            if (funcionario != null)
+            if (funcionario == null)
             {
                 return NotFound(new
                 {
@@ -286,7 +286,7 @@ namespace AplicacaoAtividade03.Controllers
             _context.Enderecos.RemoveRange(enderecosRemovidos);
 
             //Enderecos: 2) altera os que vieram com id e insere os que vieram sem id
-            foreach(var e in dto.Enderecos)
+            foreach (var e in dto.Enderecos)
             {
                 if (e.IdEndereco.HasValue)
                 {
@@ -347,7 +347,7 @@ namespace AplicacaoAtividade03.Controllers
                 });
             }
 
-            if(await _context.Atendimentos.AnyAsync(a => a.Idpessoa == id))
+            if (await _context.Atendimentos.AnyAsync(a => a.Idpessoa == id))
             {
                 return Conflict(new
                 {
@@ -374,7 +374,7 @@ namespace AplicacaoAtividade03.Controllers
                 });
             }
 
-                return NoContent();
+            return NoContent();
         }
 
     }

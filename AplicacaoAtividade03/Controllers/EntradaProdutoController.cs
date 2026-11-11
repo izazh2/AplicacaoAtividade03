@@ -13,7 +13,7 @@ namespace AplicacaoAtividade03.Controllers
         private readonly BdAulaBackendContext _context;
 
         //METODO CONSTRUTOR 
-        public EntradaProdutoController (BdAulaBackendContext context)
+        public EntradaProdutoController(BdAulaBackendContext context)
         {
             _context = context;
         }
@@ -79,7 +79,7 @@ namespace AplicacaoAtividade03.Controllers
                 consulta = consulta.Where(e => e.Iditem == idItem.Value);
             }
 
-            var entradas = await consulta 
+            var entradas = await consulta
                 .OrderByDescending(e => e.DataEntradaProduto)
                 .ThenByDescending(e => e.IdentradaProduto)
                 .ToListAsync();
@@ -92,9 +92,9 @@ namespace AplicacaoAtividade03.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<EntradaProdutoListDTO>> GetEntrada(int id)
         {
-            var  entrada = await ConsultaCompleta()
+            var entrada = await ConsultaCompleta()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.IdentradaProduto ==id);
+                .FirstOrDefaultAsync(e => e.IdentradaProduto == id);
 
             if (entrada == null)
             {
@@ -111,9 +111,9 @@ namespace AplicacaoAtividade03.Controllers
         [HttpPost]
         public async Task<ActionResult<EntradaProdutoListDTO>> PostEntrada(EntradaProdutoPostDTO dto)
         {
-            if (dto.IdItem <=0)
+            if (dto.IdItem <= 0)
             {
-                return BadRequest(new { mensagem = "INFORME O ID DO PRODUTO" });    
+                return BadRequest(new { mensagem = "INFORME O ID DO PRODUTO" });
             }
 
             var erroValidacao = ValidarCampos(dto.DataEntrada, dto.Quantidade, dto.Unidade, dto.ValorUnitario);
@@ -127,7 +127,7 @@ namespace AplicacaoAtividade03.Controllers
             //(A FK DE entrada_produto APONTA PARA ESTOQUE, NAO DIRETO PARA PRODUTO)
             var estoque = await _context.Estoques
                 .Include(e => e.IditemNavigation)
-                .FirstOrDefaultAsync( e => e.Iditem == dto.IdItem);
+                .FirstOrDefaultAsync(e => e.Iditem == dto.IdItem);
 
             if (estoque == null)
             {
@@ -156,11 +156,11 @@ namespace AplicacaoAtividade03.Controllers
                 // POR ISSO A API NAO MEXE NO ESTOQUE AQUI (SENAO SOMARIA DUAS VEZES
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException ex) 
+            catch (DbUpdateException ex)
             {
                 return BadRequest(new
                 {
-                    mesagem = "ERRO NO CADASTRO",
+                    mensagem = "ERRO NO CADASTRO",
                     erro = ex.InnerException?.Message ?? ex.Message
                 });
             }
@@ -169,21 +169,21 @@ namespace AplicacaoAtividade03.Controllers
             var criada = await ConsultaCompleta()
                 .AsNoTracking()
                 .FirstAsync(e => e.IdentradaProduto == entrada.IdentradaProduto);
-            
+
 
             return CreatedAtAction(
                 nameof(GetEntrada),
-                new {id = entrada.IdentradaProduto},
+                new { id = entrada.IdentradaProduto },
                 ConverterParaDTO(criada));
         }
 
         //ALTERAR UMA ENTRADA (A API ACERTA O ESTOQUE PELA DIFERENCA DE QUANTIDADE)
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> PutEntrada (int id, EntradaProdutoPutDTO dto)
+        public async Task<IActionResult> PutEntrada(int id, EntradaProdutoPutDTO dto)
         {
             var erroValidacao = ValidarCampos(dto.DataEntrada, dto.Quantidade, dto.Unidade, dto.ValorUnitario);
 
-            if (erroValidacao == null)
+            if (erroValidacao != null)
             {
                 return BadRequest(new { mensagem = erroValidacao });
             }
